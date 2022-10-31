@@ -22,4 +22,7 @@
   .input {
     @apply w-full rounded bg-[#333] px-5 py-2.5 placeholder-[gray] outline-none focus:bg-[#454545];
   }
+  .modalButton {
+    @apply flex h-9 w-9 items-center justify-center rounded-full border-2 border-[gray] bg-[#2a2a2a]/60 transition hover:border-white hover:bg-white/10;
+  }
 }
