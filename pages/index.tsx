@@ -1,15 +1,29 @@
+import {
+  getProducts,
+  Product,
+} from '@stripe/firestore-stripe-payments/lib/product';
 import Head from 'next/head';
 import { useRecoilValue } from 'recoil';
 import { modalState } from '../atoms/modalAtom';
 import Banner from '../components/Banner';
 import Header from '../components/Header';
 import Modal from '../components/Modal';
+import Plans from '../components/Plans';
 import Row from '../components/Row';
 import useAuth from '../hooks/useAuth';
+import useSubscription from '../hooks/useSubscription';
+import payments from '../lib/stripe';
 import { Movie } from '../typings';
 import requests from '../utils/request';
 
 export const getServerSideProps = async () => {
+  const products = await getProducts(payments, {
+    includePrices: true,
+    activeOnly: true,
+  })
+    .then((res) => res)
+    .catch((error) => console.log(error.message));
+
   const [
     netflixOriginals,
     trendingNow,
@@ -40,6 +54,7 @@ export const getServerSideProps = async () => {
       horrorMovies: horrorMovies.results,
       romanceMovies: romanceMovies.results,
       documentaries: documentaries.results,
+      products,
     },
   };
 };
@@ -53,6 +68,7 @@ interface Props {
   horrorMovies: Movie[];
   romanceMovies: Movie[];
   documentaries: Movie[];
+  products: Product[];
 }
 
 const Home = ({
@@ -64,12 +80,19 @@ const Home = ({
   horrorMovies,
   romanceMovies,
   documentaries,
+  products,
 }: Props) => {
-  const { loading } = useAuth();
+  const { loading, user } = useAuth();
   const showModal = useRecoilValue(modalState);
+  const subscription = useSubscription(user);
+  console.log('subscription:', subscription);
 
-  if (loading) {
-    return <p>Loading...</p>;
+  if (loading || subscription === null) {
+    return null;
+  }
+
+  if (!subscription) {
+    return <Plans products={products} />;
   }
 
   return (
